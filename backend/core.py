@@ -4,15 +4,17 @@ import os
 import sys
 import json
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class SpotifyClient:
     def __init__(self):
-        # Configuration - Replace these with your actual credentials
-        # OR set them as environment variables (Recommended for security)
-        # DIRECT ASSIGNMENT (Simplest for testing)
-        self.client_id = "59a0e2f913c5478ca49df9529b8f8687"
-        self.client_secret = "ceba348353234a55bd0af9ebaeacc704"
-        self.redirect_uri = "http://127.0.0.1:8888/callback"
+
+        self.client_id = os.getenv("SPOTIPY_CLIENT_ID")
+        self.client_secret = os.getenv("SPOTIPY_CLIENT_SECRET")
+        self.redirect_uri = os.getenv("SPOTIPY_REDIRECT_URI")
         
         # Scopes determine what your app is allowed to do
         # We need scopes for playback control, reading library, and modifying volume
