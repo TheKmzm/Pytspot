@@ -520,7 +520,7 @@ class SpotifyGUI(QMainWindow):
         greeting_card.setStyleSheet(f"background-color: #181818; border-radius: 15px; border-left: 5px solid {accent};")
         gc_layout = QVBoxLayout(greeting_card)
         hour = datetime.datetime.now().hour
-        greeting = "Good Morning" if 5 <= hour < 12 else "Good Afternoon" if 12 <= hour < 18 else "Good Evening"
+        greeting = "Good Morning" if 5 <= hour < 12 else "Good Afternoon" if 12 <= hour < 18 else "Good Evening" if 18 <= hour < 22 else "Good Night" if 22 <= hour < 1 else "Time to go sleep, good Night!"
         user_name = "User"
         if hasattr(self.client, 'get_user_name'): user_name = self.client.get_user_name()
         
