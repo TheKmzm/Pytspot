@@ -889,9 +889,10 @@ class SpotifyGUI(QMainWindow):
         self.combo_theme.currentTextChanged.connect(self.save_and_apply_settings)
         
         # 2. Checkboxy
-        self.check_light = QCheckBox("☀️ Světlý režim (Light Mode)")
-        self.check_light.setChecked(self.settings.get("light_mode"))
-        self.check_light.toggled.connect(self.save_and_apply_settings)
+        #self.check_light = QCheckBox("☀️ Světlý režim (Light Mode)")
+        #self.check_light.setChecked(self.settings.get("light_mode"))
+        #self.check_light.toggled.connect(self.save_and_apply_settings)
+        #nezapinat svetly rezim
 
         self.check_compact = QCheckBox("📉 Kompaktní zobrazení")
         self.check_compact.setChecked(self.settings.get("compact_mode"))
@@ -912,7 +913,7 @@ class SpotifyGUI(QMainWindow):
 
         form_layout.addRow(lbl_col, self.combo_theme)
         form_layout.addRow(QLabel("")) # Spacer
-        form_layout.addRow(lbl_vis, self.check_light)
+        #form_layout.addRow(lbl_vis, self.check_light)
         form_layout.addRow("", self.check_compact)
         form_layout.addRow("", self.check_ultra)
         form_layout.addRow("", self.check_scroll)
@@ -927,7 +928,7 @@ class SpotifyGUI(QMainWindow):
         """Uloží všechna nastavení a překreslí UI."""
         # Uložit hodnoty
         self.settings.set("theme", self.combo_theme.currentText())
-        self.settings.set("light_mode", self.check_light.isChecked())
+        #self.settings.set("light_mode", self.check_light.isChecked())
         self.settings.set("compact_mode", self.check_compact.isChecked())
         self.settings.set("ultra_compact", self.check_ultra.isChecked())
         self.settings.set("hide_scrollbars", self.check_scroll.isChecked())
