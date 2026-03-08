@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+#image_url oprav to
+
 
 class SpotifyClient:
     def __init__(self):
@@ -79,6 +81,7 @@ class SpotifyClient:
             track_type = playback.get('currently_playing_type', 'track')
             
             # --- HANDLE PODCASTS ---
+            # Neni dulezite aby to fungovalo
             if track_type == 'episode':
                 return {
                     "name": track['name'],
@@ -113,7 +116,7 @@ class SpotifyClient:
             return {
                 "name": track['name'],
                 "artist": artist_name,
-                "artist_id": artist_id, # <--- Added to return dictionary
+                "artist_id": artist_id,
                 "album_id": album_id,
                 "album_art": image_url,
                 "is_playing": playback['is_playing'],
@@ -209,7 +212,7 @@ class SpotifyClient:
                 # Check if key exists first
                 if 'tracks' in results and results['tracks']['items']:
                     for track in results['tracks']['items']:
-                        if not track: continue  # <--- SAFETY CHECK
+                        if not track: continue  # if something isnt right
                         
                         img = None
                         if track.get('album') and track['album'].get('images'):
@@ -228,9 +231,12 @@ class SpotifyClient:
             elif search_type == 'artist':
                 if 'artists' in results and results['artists']['items']:
                     for artist in results['artists']['items']:
-                        if not artist: continue # <--- SAFETY CHECK
+                        if not artist: continue 
                         
-                        img = artist['images'][0]['url'] if artist.get('images') else None
+                        img = None
+                        
+                        if artist.get('images'):
+                            img = artist['images'][0]['url']
                         items.append({
                             "type": "artist",
                             "name": artist['name'],
@@ -244,9 +250,12 @@ class SpotifyClient:
             elif search_type == 'album':
                 if 'albums' in results and results['albums']['items']:
                     for album in results['albums']['items']:
-                        if not album: continue # <--- SAFETY CHECK
+                        if not album: continue
                         
-                        img = album['images'][0]['url'] if album.get('images') else None
+                        img = None
+                        if album.get('images'):
+                            img = album['images'][0]['url']
+
                         items.append({
                             "type": "album",
                             "name": album['name'],
@@ -261,9 +270,11 @@ class SpotifyClient:
             elif search_type == 'playlist':
                 if 'playlists' in results and results['playlists']['items']:
                     for pl in results['playlists']['items']:
-                        if not pl: continue # <--- SAFETY CHECK
+                        if not pl: continue
                         
-                        img = pl['images'][0]['url'] if pl.get('images') else None
+                        img = None
+                        if pl.get('images'):
+                            img = pl['images'][0]['url']
                         owner = pl['owner']['display_name'] if pl.get('owner') else "Unknown"
                         
                         items.append({
@@ -295,9 +306,9 @@ class SpotifyClient:
         devices = self.sp.devices()
         return devices['devices']
 
-    def transfer_playback(self, device_id):
+    def transfer_playback(self, device_id, force_play=True):
         """Moves the music to a specific device."""
-        self.sp.transfer_playback(device_id=device_id, force_play=True)
+        self.sp.transfer_playback(device_id=device_id,force_play=force_play)
 
     def add_to_queue(self, track_uri):
             """Adds a track to the end of the user's current queue."""
@@ -342,7 +353,7 @@ class SpotifyClient:
             print(f"Error fetching album: {e}")
             return None
 
-    def get_artist_page(self, artist_id):
+    def get_artist_page(self, artist_id,top_limit = 20):
         """
         Fetches Artist profile: Bio info, Top Tracks, and Albums.
         """
@@ -356,7 +367,7 @@ class SpotifyClient:
             # 2. Top Tracks (The "Popular" section)
             top_tracks_raw = self.sp.artist_top_tracks(artist_id)
             top_tracks = []
-            for t in top_tracks_raw['tracks'][:20]: # Limit to top 20
+            for t in top_tracks_raw['tracks'][:top_limit]:
                 img = t['album']['images'][0]['url'] if t['album']['images'] else None
                 top_tracks.append({
                     "name": t['name'],
@@ -366,7 +377,7 @@ class SpotifyClient:
 
             # 3. Discography (Albums)
             # We filter for 'album' to avoid seeing hundreds of singles/remixes
-            albums_raw = self.sp.artist_albums(artist_id, album_type='album', limit=10)
+            albums_raw = self.sp.artist_albums(artist_id, album_type='album', limit=20)
             albums = []
             seen_names = set() # Helper to remove duplicates (Spotify API returns many duplicates)
             
@@ -451,7 +462,6 @@ class SpotifyClient:
         This ensures the music continues after the song ends.
         """
         try:
-            # offset={"uri": ...} tells Spotify where to start in the list
             self.sp.start_playback(context_uri=context_uri, offset={"uri": track_uri})
         except Exception as e:
             print(f"Context Playback Error: {e}")
@@ -470,10 +480,10 @@ class SpotifyClient:
         (Spotify API doesn't allow playing 'Liked Songs' as a context, so we pass a list of URIs).
         """
         try:
-            print("Fetching Liked Songs...")
+            #print("Fetching Liked Songs...")
             # 1. Get the most recent 50 liked songs
             results = self.sp.current_user_saved_tracks(limit=50)
-            
+            # doplnit nacitani pokud je jich vice nez padesat
             if not results['items']:
                 print("No liked songs found.")
                 return
@@ -506,6 +516,9 @@ class SpotifyClient:
         Plays a custom list of track URIs (e.g., Artist Top Tracks).
         Optionally starts at a specific track in that list.
         """
+        
+        #porovnat s lay_track_in_context
+        
         try:
             if start_uri:
                 # offset={"uri": ...} tells Spotify exactly which song in the list to begin with
@@ -556,6 +569,7 @@ class SpotifyClient:
             print(f"Error fetching history: {e}")
             return []
 
+# udelej ukaladani do vice souboru
     def save_item_locally(self, data):
         """Saves a track/artist/playlist dict to a local JSON file."""
         filename = "saved_items.json"
@@ -578,9 +592,10 @@ class SpotifyClient:
             print(f"Save error: {e}")
             return False
 
-    def get_saved_items(self):
+    def get_saved_items(self,name = "saved_items"):
         """Reads the local JSON file."""
-        filename = "saved_items.json"
+        full_name = name + ".json"
+        filename = full_name
         if not os.path.exists(filename):
             return []
         try:
