@@ -20,6 +20,11 @@ class SpotifyClient:
         self.client_secret = "ceba348353234a55bd0af9ebaeacc704"
         self.redirect_uri = "http://127.0.0.1:8888/callback"
         
+        # for local saves
+        self.path = os.path.join("data","locals_lists")
+        if not os.path.exists(self.path):
+            os.makedirs(self.path, exist_ok=True)
+        
         # Scopes determine what your app is allowed to do
         # We need scopes for playback control, reading library, and modifying volume
         self.scope = (
@@ -485,7 +490,7 @@ class SpotifyClient:
             #print("Fetching Liked Songs...")
             # 1. Get the most recent 50 liked songs
             results = self.sp.current_user_saved_tracks(limit=50)
-            # doplnit nacitani pokud je jich vice nez padesat
+
             if not results['items']:
                 print("No liked songs found.")
                 return
@@ -519,16 +524,20 @@ class SpotifyClient:
         Optionally starts at a specific track in that list.
         """
         
-        #porovnat s lay_track_in_context
-        
         try:
             if start_uri:
-                # offset={"uri": ...} tells Spotify exactly which song in the list to begin with
                 self.sp.start_playback(uris=uris, offset={"uri": start_uri})
             else:
                 self.sp.start_playback(uris=uris)
         except Exception as e:
             print(f"Error playing list: {e}")
+
+    def play_context(self, context_uri):
+        """Přehraje album, playlist nebo umělce (Vyžadováno pro AI)."""
+        try:
+            self.sp.start_playback(context_uri=context_uri)
+        except Exception as e:
+            print(f"Chyba při play_context: {e}")
 
     def add_track_to_playlist(self, playlist_id, track_uris):
         """
@@ -571,11 +580,10 @@ class SpotifyClient:
             print(f"Error fetching history: {e}")
             return []
 
-# udelej ukaladani do vice souboru
-    def save_item_locally(self, data):
+    def save_item_locally(self, data, name="saved_items"):
         """Saves a track/artist/playlist dict to a local JSON file."""
-        filename = "saved_items.json"
-        items = self.get_saved_items()
+        pth = os.path.join(self.path, name + ".json")
+        items = self.get_saved_items(name=name)
         
         # Check for duplicates (by URI)
         for i in items:
@@ -586,7 +594,7 @@ class SpotifyClient:
         items.append(data)
         
         try:
-            with open(filename, 'w') as f:
+            with open(pth, 'w') as f:
                 json.dump(items, f, indent=4)
             print(f"Saved: {data['name']}")
             return True
@@ -594,31 +602,30 @@ class SpotifyClient:
             print(f"Save error: {e}")
             return False
 
-    def get_saved_items(self,name = "saved_items"):
+    def get_saved_items(self, name="saved_items"):
         """Reads the local JSON file."""
-        full_name = name + ".json"
-        filename = full_name
-        if not os.path.exists(filename):
+        pth = os.path.join(self.path, name + ".json")
+        if not os.path.exists(pth):
             return []
         try:
-            with open(filename, 'r') as f:
+            with open(pth, 'r') as f:
                 return json.load(f)
         except:
             return []
 
-    def remove_item_locally(self, uri):
+    def remove_item_locally(self, uri, name="saved_items"):
         """Removes an item by URI."""
-        filename = "saved_items.json"
-        items = self.get_saved_items()
+        pth = os.path.join(self.path, name + ".json")
+        items = self.get_saved_items(name=name)
         
         new_items = [i for i in items if i.get('uri') != uri]
         
-        with open(filename, 'w') as f:
-            json.dump(new_items, f, indent=4)
-
-    def play_context(self, context_uri):
-        """Přehraje album, playlist nebo umělce (Vyžadováno pro AI)."""
         try:
-            self.sp.start_playback(context_uri=context_uri)
+            with open(pth, 'w') as f:
+                json.dump(new_items, f, indent=4)
+            print(f"Removed item with URI: {uri}")
+            return True
         except Exception as e:
-            print(f"Chyba při play_context: {e}")
+            print(f"Remove error: {e}")
+            return False
+
