@@ -1,5 +1,7 @@
 # frontend/styles.py
 
+#css neumim pomooooooooooct
+
 # --- BAREVNÁ SCHÉMATA ---
 THEMES = {
     "Red":    {"accent": "#E50914", "hover": "#FF3333"},

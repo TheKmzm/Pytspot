@@ -2,7 +2,7 @@ import json
 import os
 
 SPEAKER_NAME = "My_PC_Speaker"
-VERSION_FILE = "app_version.json"
+VERSION_FILE = "data/app_version.json"
 
 
 def increment_version():
