@@ -6,7 +6,7 @@ import atexit
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QFont, QIcon
 
-LIBRE = True
+LIBRE = False
 
 
 
