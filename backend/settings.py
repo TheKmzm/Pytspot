@@ -1,14 +1,14 @@
 import json
 import os
 
-CONFIG_FILE = "config.json"
+CONFIG_FILE = "data/config.json"
 
 DEFAULT_CONFIG = {
     "theme": "Red",
-    "compact_mode": False,
+    "compact_mode": True,
     "ultra_compact": True,
     "light_mode": False,
-    "hide_scrollbars": False,
+    "hide_scrollbars": True,
     "default_volume": 100
 }
 

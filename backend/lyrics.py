@@ -4,7 +4,6 @@ import re
 
 # --- CONFIGURATION ---
 GENIUS_ACCESS_TOKEN = "uPvNfB78QtkCDOPQd0kyY7q5q_VO27RHRIiBZLggx-00N7YgZWCGjGM-Zvwyl4O_" 
-# ^^^ PASTE YOUR TOKEN ABOVE ^^^
 
 class GeniusClient:
     def __init__(self):
@@ -21,7 +20,7 @@ class GeniusClient:
 
     def get_lyrics(self, title, artist):
         """Orchestrates the search and scrape process."""
-        if not GENIUS_ACCESS_TOKEN or GENIUS_ACCESS_TOKEN == "YOUR_GENIUS_TOKEN_HERE":
+        if not GENIUS_ACCESS_TOKEN :
             return "Error: Please add your Genius Access Token in backend/lyrics.py"
 
         print(f"Searching Genius for: {title} by {artist}")
