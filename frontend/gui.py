@@ -1755,8 +1755,3 @@ class SpotifyGUI(QMainWindow):
         self.album_art_label.setStyleSheet("background: #333; color: #777; font-size: 30px; qproperty-alignment: AlignCenter;")
         
         self.btn_play.setIcon(QIcon(os.path.join(ASSETS_DIR, "pause.png")))
-
-
-
-
-

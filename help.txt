@@ -1,0 +1,12 @@
+    def play_list(self, uris, start_uri=None):
+        try:
+            if start_uri:
+                # offset={"uri": ...} tells Spotify exactly which song in the list to begin with
+                self.sp.start_playback(uris=uris, offset={"uri": start_uri})
+            else:
+                self.sp.start_playback(uris=uris)
+
+
+    def play_track_in_context(self, track_uri, context_uri):
+            self.sp.start_playback(context_uri=context_uri, offset={"uri": track_uri})
+
