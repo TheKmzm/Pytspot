@@ -2,6 +2,10 @@
 
 ## pridat na mainmenu *objev novou hudbu*
 
+## Rewie
+
+soudcloud a youtube
+
 ## Inspirace
 
 https://snowify.cc/
