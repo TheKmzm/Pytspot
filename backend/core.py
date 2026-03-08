@@ -316,6 +316,7 @@ class SpotifyClient:
 
             album = self.sp.album(album_id)
             
+            
             # Extract tracks cleanly
             tracklist = []
             for t in album['tracks']['items']:
@@ -514,7 +515,6 @@ class SpotifyClient:
         except Exception as e:
             print(f"Error playing list: {e}")
 
-
     def add_track_to_playlist(self, playlist_id, track_uris):
         """
         Adds one or more tracks to a playlist.
@@ -598,22 +598,6 @@ class SpotifyClient:
         
         with open(filename, 'w') as f:
             json.dump(new_items, f, indent=4)
-
-    # --- NEW METHODS FOR VOICE CONTROL ---
-
-    def pause_playback(self):
-        """Pozastaví přehrávání (Vyžadováno pro AI)."""
-        try:
-            self.sp.pause_playback()
-        except Exception as e:
-            print(f"Chyba při pauze: {e}")
-
-    def start_playback(self):
-        """Obnoví přehrávání (Vyžadováno pro AI)."""
-        try:
-            self.sp.start_playback()
-        except Exception as e:
-            print(f"Chyba při startu: {e}")
 
     def play_context(self, context_uri):
         """Přehraje album, playlist nebo umělce (Vyžadováno pro AI)."""
