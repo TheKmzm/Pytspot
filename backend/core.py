@@ -383,7 +383,6 @@ class SpotifyClient:
                 })
 
             # 3. Discography (Albums)
-            # We filter for 'album' to avoid seeing hundreds of singles/remixes
             albums_raw = self.sp.artist_albums(artist_id, album_type='album', limit=20)
             albums = []
             seen_names = set() # Helper to remove duplicates (Spotify API returns many duplicates)

@@ -247,12 +247,17 @@ class SpotifyGUI(QMainWindow):
         
         
         # --- GLOBAL HOTKEYS ---
-        self.hotkeys_thread = GlobalHotkeys()
-        self.hotkeys_thread.on_play_pause.connect(self.toggle_play) # Napojíme na naši chytrou funkci
-        self.hotkeys_thread.on_next.connect(self.client.next_track) # Nebo vytvořit chytrou funkci pro next
-        self.hotkeys_thread.on_prev.connect(self.client.previous_track)
-        self.hotkeys_thread.start()
-        
+        try:
+            self.hotkeys_thread = GlobalHotkeys()
+            self.hotkeys_thread.on_play_pause.connect(self.toggle_play) # Napojíme na naši chytrou funkci
+            self.hotkeys_thread.on_next.connect(self.client.next_track) # Nebo vytvořit chytrou funkci pro next
+            self.hotkeys_thread.on_prev.connect(self.client.previous_track)
+            self.hotkeys_thread.on_volumedown.connect(self.client.set_volume(int(self.client.get_volume()) - 5))
+            self.hotkeys_thread.on_volumeup.connect(self.client.set_volume(int(self.client.get_volume()) + 5))
+            self.hotkeys_thread.start()
+        except Exception as e:
+            print(f"Global Hotkeys Error: {e}")
+
 
         # Initialize Extra Clients
         self.sc_client = SoundCloudClient()
