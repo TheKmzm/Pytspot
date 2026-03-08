@@ -2,7 +2,11 @@
 
 ## pridat na mainmenu *objev novou hudbu*
 
-## udeal lesi nastaveni
+## Inspirace
+
+https://snowify.cc/
+
+## udeal lepsi nastaveni
 
 ## Nativnejsi spotify
 
