@@ -1,53 +1,81 @@
-import subprocess
-import platform
 import os
+import platform
 from PyQt6.QtWidgets import QMessageBox
+from PyQt6.QtCore import QProcess # Zásadní import pro běh procesů v Qt
 
 class CavaAddon:
     def __init__(self, main_app):
         self.app = main_app
         self.name = "Cava Visualizer"
         self.icon = "📊"
+        self.cava_exe = os.path.join("addons", "cava", "cava_win", "cava.exe")
+        self.config_file = os.path.join("addons", "cava", "config.txt")
+        
+        # Zde budeme držet referenci na běžící proces
+        self.cava_process = None
 
     def on_click(self):
         """Launches the Cava audio visualizer."""
-        
         system = platform.system()
         
-        try:
-            if system == "Windows":
-                # On Windows, assuming cava.exe is in the system PATH
-                # creationflags=subprocess.CREATE_NEW_CONSOLE opens it in a new window
-                subprocess.Popen(["cava"], creationflags=subprocess.CREATE_NEW_CONSOLE)
+        if system == "Windows":
+            # Zabráníme vícenásobnému spuštění, pokud už uživatel na tlačítko kliknul
+            if self.cava_process is not None and self.cava_process.state() == QProcess.ProcessState.Running:
+                print("Cava už běží!")
+                return
+
+            try:
+                # Vytvoření asynchronního procesu v rámci Qt
+                self.cava_process = QProcess(self.app) 
                 
-            elif system == "Linux":
-                # On Linux, try to open it in a common terminal emulator
-                terminals = ["gnome-terminal", "konsole", "xfce4-terminal", "alacritty", "kitty", "xterm"]
-                launched = False
+                # Propojíme signál "mám nová data" s naší funkcí
+                self.cava_process.readyReadStandardOutput.connect(self.handle_stdout)
                 
-                for term in terminals:
-                    try:
-                        # e.g., gnome-terminal -- cava
-                        subprocess.Popen([term, "-e", "cava"])
-                        launched = True
-                        break
-                    except FileNotFoundError:
-                        continue
+                # Nastavíme cestu a argumenty
+                self.cava_process.setProgram(self.cava_exe)
+                self.cava_process.setArguments(["-p", self.config_file])
                 
-                if not launched:
-                    raise Exception("Could not find a supported terminal to launch Cava.")
-                    
-            elif system == "Darwin": # macOS
-                # macOS uses Terminal.app
-                subprocess.Popen(["open", "-a", "Terminal", "cava"])
+                # Spustíme proces (bez blokování GUI!)
+                self.cava_process.start()
+                print("Cava byla spuštěna na pozadí.")
+
+            except Exception as e:
+                self.show_error(f"Failed to launch Cava:\n{e}")
                 
-        except FileNotFoundError:
-            # This happens if 'cava' is not installed or not in the PATH
-            self.show_error("Cava is not installed or not in your system PATH.\n\n"
-                            "Please install Cava first.\n"
-                            "See: https://github.com/karlstav/cava")
-        except Exception as e:
-            self.show_error(f"Failed to launch Cava:\n{e}")
+        elif system == "Linux":
+            print("Linux zatím není nastavený")
+
+    def handle_stdout(self):
+        """
+        Tato funkce se zavolá automaticky (tzv. slot), 
+        kdykoliv Cava vygeneruje nový řádek dat do konzole.
+        """
+        if not self.cava_process:
+            return
+
+        # Přečteme všechny dostupné řádky z bufferu (rychlé a neblokující)
+        while self.cava_process.canReadLine():
+            # Načtení řádku, převedení z bajtů na string a odstranění bílých znaků
+            line = self.cava_process.readLine().data().decode('utf-8').strip()
+            
+            # Zahození posledního prázdného prvku
+            raw_values = line.split(';')[:-1]
+            if not raw_values:
+                continue
+            
+            try:
+                # Převod na čísla
+                bars = [int(val) for val in raw_values]
+                
+                # Tady jsou tvá data! Tisknou se, zatímco GUI plně reaguje.
+                print(bars)
+                
+                # TODO: Zde můžeš data poslat do svého kreslícího widgetu
+                # Například: self.app.vykresli_sloupce(bars)
+
+            except ValueError:
+                # Pokud by Cava vypsala něco nečekaného (třeba error hlášku), ignorujeme to
+                pass
 
     def show_error(self, message):
         msg = QMessageBox(self.app)
