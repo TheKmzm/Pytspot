@@ -3,15 +3,12 @@ import webbrowser
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QPushButton, QMessageBox
 from PyQt6.QtCore import Qt, QUrl
 
-# Vypíšeme si cestu, abychom měli jistotu, že jsme ve správném prostředí
-print(f"Spouštím z prostředí: {sys.executable}")
 
 try:
     from PyQt6.QtWebEngineWidgets import QWebEngineView
     WEB_ENGINE_AVAILABLE = True
 except Exception as e:
     # Nyní odchytíme JAKOUKOLIV chybu a vypíšeme ji, abychom věděli, co je špatně!
-    print(f"POZOR: WebEngine se nenačetl kvůli chybě: {e}")
     WEB_ENGINE_AVAILABLE = False
 
 class DoomWindow(QDialog):
@@ -64,7 +61,6 @@ class DoomAddon:
         except:
             pass 
 
-        print(f"Stav WEB_ENGINE_AVAILABLE je: {WEB_ENGINE_AVAILABLE}")
         
         if WEB_ENGINE_AVAILABLE:
             self.doom_window = DoomWindow(self.app)

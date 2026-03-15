@@ -1,7 +1,7 @@
 import json
 import os
 
-SPEAKER_NAME = "My_PC_Speaker"
+SPEAKER_NAME = "Redify"
 VERSION_FILE = "data/app_version.json"
 
 
