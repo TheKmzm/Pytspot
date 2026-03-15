@@ -51,7 +51,7 @@ class spotify_process():
         except Exception as e:
             print(f"Failed to start librespot: {e}")
 
-    def cleanup():
+    def cleanup(self):
         """Kills the background process when the app closes."""
         global librespot_process
         if librespot_process:

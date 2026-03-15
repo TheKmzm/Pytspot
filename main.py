@@ -6,11 +6,11 @@ import atexit
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QFont, QIcon
 
-LIBRE = False
+LIBRE = True
 
 
 
-from config import SPEAKER_NAME
+from backend.config import SPEAKER_NAME
 
 # Import the GUI class
 from frontend.gui import SpotifyGUI
