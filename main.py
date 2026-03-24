@@ -6,56 +6,24 @@ import atexit
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QFont, QIcon
 
-LIBRE = False
+LIBRE = True
 
 
 
-from config import SPEAKER_NAME
+
+from backend.config import SPEAKER_NAME
 
 # Import the GUI class
 from frontend.gui import SpotifyGUI
+from spotify_agent.run_spotify import spotify_process
 
-# Global variable to hold the background process
-librespot_process = None
 
-def start_librespot():
-    """Starts librespot in the background with specific arguments."""
-    global librespot_process
-    
-    # Define paths
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    cache_path = os.path.join(base_dir, "auth_cache")
+def cleanup_sp():
+    sp.cleanup()
 
-    # Ensure cache directory exists
-    if not os.path.exists(cache_path):
-        os.makedirs(cache_path)
 
-    # COMMAND: librespot -n "My PC Speaker" -c "auth_cache" -b 160 --autoplay on
-    cmd = f'librespot -n {SPEAKER_NAME} -c "auth_cache" -b 160 --autoplay on'
 
-    try:
-        # Configure startup info to HIDE the console window on Windows
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        
-        print(f"Starting Librespot: {cmd}")
-        librespot_process = subprocess.Popen(
-            cmd, 
-            startupinfo=startupinfo,
-            stdout=subprocess.DEVNULL, # Hide output (optional)
-            stderr=subprocess.DEVNULL
-        )
 
-    except Exception as e:
-        print(f"Failed to start librespot: {e}")
-
-def cleanup():
-    """Kills the background process when the app closes."""
-    global librespot_process
-    if librespot_process:
-        print("Stopping Librespot...")
-        librespot_process.terminate()
-        librespot_process = None
 
 # --- MAIN EXECUTION ---
 
@@ -65,11 +33,13 @@ ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 if __name__ == "__main__":
     # 1. Start Librespot Background Service
+    sp = spotify_process()
     if LIBRE == True:
-        start_librespot()
+        sp.start_libre(SPEAKER_NAME)
     
     # 2. Register cleanup function (runs when you close the window)
-    atexit.register(cleanup)
+    
+    atexit.register(cleanup_sp)
 
     # 3. Start GUI
     app = QApplication(sys.argv)
@@ -93,5 +63,5 @@ if __name__ == "__main__":
     exit_code = app.exec()
     
     # 5. Cleanup on manual exit
-    cleanup()
+    cleanup_sp
     sys.exit(exit_code)

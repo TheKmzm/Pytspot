@@ -4,7 +4,11 @@ import requests
 import datetime
 import numpy as np
 import random
+import json
+import os
 import webbrowser # For Lyrics
+
+#Styling
 
 if __name__ == "__main__":
     print("Wrong file ;)")
@@ -27,26 +31,24 @@ from backend.core import SpotifyClient
 from backend.youtube import YouTubeClient
 from backend.soundcloud import SoundCloudClient
 from backend.settings import SettingsManager
-from backend.lyrics import GeniusClient # Add this
+from backend.lyrics import GeniusClient 
 from backend.hotkeys import GlobalHotkeys
 from backend.addon_manager import AddonManager
 
+from backend.config import SPEAKER_NAME, increment_version
+VERSION = str(increment_version())
 
 # Importujeme THEMES a generátor stylů
 from frontend.styles import get_stylesheet, THEMES
 
-try:
-    from config import SPEAKER_NAME, increment_version
-    VERSION = str(increment_version())
-except ImportError:
-    print("Fallback")
-    SPEAKER_NAME = "My PC Speaker" # Fallback
-    VERSION = "0.111"
+
 
 
 # PATH TO ASSETS
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSETS_DIR = os.path.join(BASE_DIR, "assets")
+DATA_DIR = os.path.join(BASE_DIR, "data")
+
 
 try:
     import pyjokes
@@ -56,7 +58,7 @@ except ImportError:
 # --- THREADS ---
 
 
-# --- LYRICS WORKER THREAD ---
+# --- LYRICS THREAD ---
 class LyricsLoader(QThread):
     lyrics_ready = pyqtSignal(str)
     
@@ -76,6 +78,7 @@ class LyricsWindow(QDialog):
         super().__init__()
         self.setWindowTitle(f"Lyrics: {title}")
         self.resize(500, 700)
+        #Styling
         self.setStyleSheet("background-color: #121212; color: white;")
         
         layout = QVBoxLayout(self)
@@ -199,43 +202,9 @@ class SpotifyGUI(QMainWindow):
         self.audio_output = QAudioOutput()
         self.radio_player.setAudioOutput(self.audio_output)
         self.audio_output.setVolume(0.7)
+        self.radio_stations = []
+        self.load_stations_from_json(os.path.join(DATA_DIR, "stations.json"))
         
-        self.radio_stations = [
-            {"name": "Proglas", "url": "http://icecast2.play.cz/proglas128", "color": "#6A1B9A"},
-            {"name": "ČR 2 – Praha", "url": "https://api.play.cz/radio/cro2-128.mp3.m3u", "color": "#1565C0"},
-            {"name": "Impuls", "url": "http://icecast5.play.cz/impuls128.mp3", "color": "#E53935"},
-            {"name": "Dechovka", "url": "http://icecast5.play.cz/dechovka128.mp3", "color": "#8D6E63"},
-            {"name": "Krokodýl", "url": "http://icecast4.play.cz/krokodyl128.mp3", "color": "#2E7D32"},
-            {"name": "Club Rádio", "url": "http://www.play.cz/radio/clubradio128.mp3.m3u", "color": "#512DA8"},
-            {"name": "Kiss Hády", "url": "http://www.play.cz/radio/kisshady128.asx", "color": "#E6007E"},
-            {"name": "Classic Praha", "url": "http://icecast8.play.cz/classic128.mp3", "color": "#424242"},
-            {"name": "Hip Hop Vibes", "url": "http://mp3stream4.abradio.cz/hiphopvibes128.mp3", "color": "#000000"},
-            {"name": "Rock Rádio", "url": "http://ice.abradio.cz/sumava128.mp3", "color": "#212121"},
-            {"name": "Fajn Rádio", "url": "http://ice.abradio.cz/fajn128.mp3", "color": "#FF6600"},
-            {"name": "Blaník", "url": "http://ice.abradio.cz/blanikfm128.mp3", "color": "#1976D2"},
-            {"name": "Rádio Humor", "url": "http://mp3stream4.abradio.cz/humor128.mp3", "color": "#FBC02D"},
-            {"name": "FM Plus", "url": "http://ice.abradio.cz/fmplus128.mp3", "color": "#009688"},
-            {"name": "Fun Rádio", "url": "http://stream.funradio.sk:8000/fun128.mp3.m3u", "color": "#D32F2F"},
-            {"name": "Rádio Jih", "url": "http://www.play.cz/radio/jih128.asx", "color": "#388E3C"},
-            {"name": "Rádio Jih – Cimbálka", "url": "http://www.play.cz/radio/jihcimbalka128.asx", "color": "#6D4C41"},
-            {"name": "Evropa 2", "url": "https://ice.actve.net/fm-evropa2-128", "color": "#005EB8"},
-            {"name": "Rádio Slovensko", "url": "http://live.slovakradio.sk:8000/Slovensko_128.mp3", "color": "#C62828"},
-
-            {"name": "ČRo Jazz", "url": "https://api.play.cz/radio/crojazz256.mp3.m3u", "color": "#4E342E"},
-            {"name": "ČRo Plus", "url": "https://api.play.cz/radio/croplus128.mp3.m3u", "color": "#283593"},
-            {"name": "Rádio Regina BB", "url": "http://live.slovakradio.sk:8000/Regina_BB_128.mp3", "color": "#455A64"},
-            {"name": "ČRo Radiožurnál", "url": "http://icecast8.play.cz:8000/cro1-128.mp3", "color": "#E30613"},
-            {"name": "Frekvence 1", "url": "https://ice.actve.net/fm-frekvence1-128", "color": "#FFD600"},
-            {"name": "Country Rádio", "url": "https://icecast4.play.cz/country128.mp3", "color": "#795548"},
-            {"name": "Kiss Rádio Proton", "url": "https://icecast1.play.cz/kissproton128.mp3", "color": "#AD1457"},
-            {"name": "Radio Spin", "url": "https://icecast4.play.cz/spin128.mp3", "color": "#000000"},
-            {"name": "ČRo Radio Wave", "url": "https://rozhlas.stream/wave_mp3_128.mp3", "color": "#00ACC1"},
-            {"name": "DAB Plus Top 40", "url": "https://icecast6.play.cz/dabplus-top40.mp3", "color": "#EC407A"},
-            {"name": "Radio Relax", "url": "https://icecast7.play.cz/relax128.mp3", "color": "#81C784"},
-            {"name": "Radio Haná", "url": "https://icecast8.play.cz/hana128.mp3", "color": "#FB8C00"},
-            {"name": "BBC World Service", "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_world_service", "color": "#B80000"}
-        ]
-
         # Initialize Backend
         try:
             self.client = SpotifyClient()
@@ -247,12 +216,17 @@ class SpotifyGUI(QMainWindow):
         
         
         # --- GLOBAL HOTKEYS ---
-        self.hotkeys_thread = GlobalHotkeys()
-        self.hotkeys_thread.on_play_pause.connect(self.toggle_play) # Napojíme na naši chytrou funkci
-        self.hotkeys_thread.on_next.connect(self.client.next_track) # Nebo vytvořit chytrou funkci pro next
-        self.hotkeys_thread.on_prev.connect(self.client.previous_track)
-        self.hotkeys_thread.start()
-        
+        try:
+            self.hotkeys_thread = GlobalHotkeys()
+            self.hotkeys_thread.on_play_pause.connect(self.toggle_play) # Napojíme na naši chytrou funkci
+            self.hotkeys_thread.on_next.connect(self.client.next_track) # Nebo vytvořit chytrou funkci pro next
+            self.hotkeys_thread.on_prev.connect(self.client.previous_track)
+            self.hotkeys_thread.on_volumedown.connect(self.client.set_volume(int(self.client.get_volume()) - 5))
+            self.hotkeys_thread.on_volumeup.connect(self.client.set_volume(int(self.client.get_volume()) + 5))
+            self.hotkeys_thread.start()
+        except Exception as e:
+            print(f"Global Hotkeys Error: {e}")
+
 
         # Initialize Extra Clients
         self.sc_client = SoundCloudClient()
@@ -290,7 +264,7 @@ class SpotifyGUI(QMainWindow):
                     try: self.client.set_volume(self.settings.get("default_volume")) 
                     except: pass
                     return
-            print("Target device not found (yet).")
+            #print("Target device not found (yet).")
         except Exception as e:
             print(f"Auto-connect error: {e}")
 
@@ -889,9 +863,10 @@ class SpotifyGUI(QMainWindow):
         self.combo_theme.currentTextChanged.connect(self.save_and_apply_settings)
         
         # 2. Checkboxy
-        self.check_light = QCheckBox("☀️ Světlý režim (Light Mode)")
-        self.check_light.setChecked(self.settings.get("light_mode"))
-        self.check_light.toggled.connect(self.save_and_apply_settings)
+        #self.check_light = QCheckBox("☀️ Světlý režim (Light Mode)")
+        #self.check_light.setChecked(self.settings.get("light_mode"))
+        #self.check_light.toggled.connect(self.save_and_apply_settings)
+        #nezapinat svetly rezim
 
         self.check_compact = QCheckBox("📉 Kompaktní zobrazení")
         self.check_compact.setChecked(self.settings.get("compact_mode"))
@@ -912,7 +887,7 @@ class SpotifyGUI(QMainWindow):
 
         form_layout.addRow(lbl_col, self.combo_theme)
         form_layout.addRow(QLabel("")) # Spacer
-        form_layout.addRow(lbl_vis, self.check_light)
+        #form_layout.addRow(lbl_vis, self.check_light)
         form_layout.addRow("", self.check_compact)
         form_layout.addRow("", self.check_ultra)
         form_layout.addRow("", self.check_scroll)
@@ -927,7 +902,7 @@ class SpotifyGUI(QMainWindow):
         """Uloží všechna nastavení a překreslí UI."""
         # Uložit hodnoty
         self.settings.set("theme", self.combo_theme.currentText())
-        self.settings.set("light_mode", self.check_light.isChecked())
+        #self.settings.set("light_mode", self.check_light.isChecked())
         self.settings.set("compact_mode", self.check_compact.isChecked())
         self.settings.set("ultra_compact", self.check_ultra.isChecked())
         self.settings.set("hide_scrollbars", self.check_scroll.isChecked())
@@ -1755,7 +1730,18 @@ class SpotifyGUI(QMainWindow):
         
         self.btn_play.setIcon(QIcon(os.path.join(ASSETS_DIR, "pause.png")))
 
+    def load_stations_from_json(self, file_path):
+        """Načte seznam rádií z JSON souboru. Pokud selže, použije prázdný seznam."""
+        if not os.path.exists(file_path):
+            print(f"Chyba: Soubor {file_path} nebyl nalezen.")
+            return
 
-
-
-
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                self.radio_stations = json.load(file)
+            print(f"Úspěšně načteno {len(self.radio_stations)} stanic.")
+            
+        except json.JSONDecodeError as e:
+            print(f"Chyba: Soubor {file_path} neobsahuje validní JSON formát. Detail: {e}")
+        except Exception as e:
+            print(f"Při načítání stanic došlo k neočekávané chybě: {e}")

@@ -1,0 +1,9 @@
+{
+    "theme": "Red",
+    "compact_mode": true,
+    "ultra_compact": true,
+    "light_mode": false,
+    "hide_scrollbars": true,
+    "default_volume": 70,
+    "show_notifications": true
+}
