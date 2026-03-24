@@ -1,0 +1,4 @@
+[output]
+method = raw
+data_format = ascii
+bars = 64
