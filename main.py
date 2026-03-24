@@ -10,6 +10,7 @@ LIBRE = True
 
 
 
+
 from backend.config import SPEAKER_NAME
 
 # Import the GUI class
